@@ -1,0 +1,189 @@
+<!--CSE470 HW4 -->
+<!--Josh Barnes -->
+
+<html>
+
+<head>
+
+<TITLE>Lights, Camera, Action!</TITLE>
+
+
+<style type="text/css">
+
+/* CSE470 change color of the canvas */
+canvas { background: #F08080; }
+
+/* CSE470 set body properties */
+body {
+	font: 100%/1.4 Verdana, Arial, Helvetica, sans-serif;
+	background-color:	#8FBC8F;
+	margin: 0;
+	padding: 0;
+	color: 	#2F4F4F;
+}
+
+/* ~~ this fixed width container surrounds all other elements ~~ */
+.container {
+	width: 960px;
+	background-color: #FFF;
+	margin: 0 auto; /* the auto value on the sides, coupled with the width, centers the layout */
+}
+
+h1, h2, h3, h4, h5, h6, p {
+	margin-top: 0;	 /* removing the top margin gets around an issue where margins can escape from their containing div. The remaining bottom margin will hold it away from any elements that follow. */
+	padding-right: 0px;
+	padding-left: 0px; /* adding the padding to the sides of the elements within the divs, instead of the divs themselves, gets rid of any box model math. A nested div with side padding can also be used as an alternate method. */
+	margin-bottom: 2px; padding-bottom: 0;
+}
+
+.wrapper{
+	margin: : 0 auto;
+}
+
+/* CSE470 put controls next to canvas */
+.controls{
+	padding-left: 530px;
+}
+
+</style>
+
+</head>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+attribute  vec4 vPosition;
+attribute vec3 vNormal;
+
+varying vec4 fColor;
+
+uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+uniform vec4 lightPosition;
+uniform float shininess;
+
+void main()
+{
+  vec3 pos = -(modelViewMatrix * vPosition).xyz;
+
+  //fixed light postion
+
+  vec3 light = lightPosition.xyz;
+  vec3 L = normalize( light - pos );
+
+
+  vec3 E = normalize( pos );
+  vec3 H = normalize( L + E );
+
+  vec4 NN = vec4(vNormal,0);
+
+  // Transform vertex normal into eye coordinates
+
+  vec3 N = normalize( (modelViewMatrix*NN).xyz);
+
+  // Compute terms in the illumination equation
+  vec4 ambient = ambientProduct;
+
+  float Kd = max( dot(L, N), 0.0 );
+  vec4  diffuse = Kd*diffuseProduct;
+
+  float Ks = pow( max(dot(N, H), 0.0), shininess );
+  vec4  specular = Ks * specularProduct;
+
+  if( dot(L, N) < 0.0 ) {
+specular = vec4(0.0, 0.0, 0.0, 1.0);
+  }
+
+  gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+  fColor = ambient + diffuse +specular;
+
+  fColor.a = 1.0;
+
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+varying vec4 fColor;
+
+void main()
+{
+
+  gl_FragColor = fColor;
+
+}
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/InitShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="figure.js"></script>
+<script type="text/javascript" src="animateAvatar.js"></script>
+<script type="text/javascript" src="avatarGeometry.js"></script>
+
+
+<div class="wrapper" style="margin: 25px; width: 1150px; position: relative">
+<body>
+
+  <!-- CSE470 buttons and music controls for the user-->
+  <button id="animateAvatar"> Animate</button>
+  <br></br>
+
+  <audio controls>
+    <source src="JauntyGumption.mp3" type="audio/mpeg">
+  </audio>
+  <br></br>
+
+<!-- CSE470 create canvas-->
+<canvas id="gl-canvas" style="background: url('earth1.jpg')" width="600" height="600" >
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+
+<div class="controls" style="position: absolute; top:90; left:100;">
+  <!-- CSE470 documentation on functionality -->
+<h1>
+<strong>CSE 470 HW#4: Avatar</strong>
+</h1>
+
+<p>
+<b>Author: </b> Josh Barnes &nbsp &nbsp &nbsp <b>Date: </b> April 23, 2018
+<br>
+<b>Description:</b> This program demonstrates how to apply a texture map and how to create an animation using a hierarchical model
+</br>
+
+<b>Functionality: </b>
+</p>
+<p>
+<ul>
+<li>This program creates an avatar using a hierarchical model</li>
+<li>The user can press the animate button to start the movement of the avatar</li>
+<b>Extra Credit: </b>
+<li>The user can press the play button to start the preloaded music</li>
+<li>The user can also control the sound level for the music</li>
+</ul>
+</p>
+
+<p>
+<b>Parameters: </b>
+</p>
+<p>
+<ul>
+<li>ID numbers are given to each body part and then nodes are created for each part</li>
+<li>Cube normals are used to accurately portray the lighting using the phong illumination model</li>
+<li>diffuseProduct controls the way a surface reflects the light</li>
+<li>specularProduct shows the light being reflected on the object</li>
+<li>shininess shows how mirror-like an object is</li>
+<li>The createNode function creates a new node and adds it to the hierarchical tree</li>
+</ul>
+</p>
+
+<p>
+<b>Resources: </b> Prof. Angel's codes.
+</p>
+
+
+</div>
+</div>
+</body>
+</html>
